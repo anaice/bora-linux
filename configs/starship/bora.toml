@@ -1,0 +1,252 @@
+# ============================================================
+#  bora — dark hacker terminal
+#  Requer: Nerd Font (JetBrainsMono)
+# ============================================================
+
+palette = "bora"
+
+format = """
+[┌](fg:border) $os\
+$directory\
+$git_branch\
+$git_status\
+$git_metrics\
+$fill\
+$docker_context\
+$kubernetes\
+$terraform\
+$aws\
+$gcloud\
+$java\
+$ruby\
+$python\
+$golang\
+$rust\
+$nodejs\
+$elixir\
+$dart\
+$php\
+$cmd_duration\
+$time
+[└](fg:border) $character"""
+
+add_newline = true
+command_timeout = 1000
+
+[palettes.bora]
+border   = "#4a4e69"
+dim      = "#6c7086"
+text     = "#bac2de"
+bright   = "#cdd6f4"
+green    = "#50fa7b"
+red      = "#ff5555"
+yellow   = "#f1fa8c"
+cyan     = "#8be9fd"
+purple   = "#bd93f9"
+orange   = "#ffb86c"
+pink     = "#ff79c6"
+blue     = "#6272a4"
+
+[fill]
+symbol = " "
+
+# ── OS ──
+[os]
+disabled = false
+style = "fg:green"
+format = "[$symbol ]($style)"
+
+[os.symbols]
+Ubuntu = ""
+Linux = ""
+Mint = "󰣭"
+Pop = ""
+Arch = ""
+Fedora = ""
+Debian = ""
+Manjaro = ""
+Windows = ""
+Macos = ""
+
+# ── Diretorio ──
+[directory]
+truncation_length = 3
+truncation_symbol = "…/"
+home_symbol = "~"
+style = "bold fg:bright"
+read_only = " "
+read_only_style = "fg:red"
+repo_root_style = "bold fg:green"
+repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+format = "[$path]($style)[$read_only]($read_only_style) "
+
+# ── Git ──
+[git_branch]
+symbol = " "
+style = "fg:purple"
+format = "[$symbol$branch(:$remote_branch)]($style) "
+truncation_length = 30
+
+[git_status]
+style = "fg:yellow"
+format = '([$all_status$ahead_behind]($style) )'
+ahead = "⇡${count}"
+behind = "⇣${count}"
+diverged = "⇕⇡${ahead_count}⇣${behind_count}"
+conflicted = "=${count}"
+untracked = "?${count}"
+modified = "!${count}"
+staged = "+${count}"
+renamed = "»${count}"
+deleted = "✘${count}"
+stashed = "*${count}"
+up_to_date = ""
+
+[git_metrics]
+disabled = false
+added_style = "fg:green"
+deleted_style = "fg:red"
+format = '([+$added]($added_style) )([-$deleted]($deleted_style) )'
+only_nonzero_diffs = true
+
+# ── Prompt ──
+[character]
+success_symbol = "[❯](fg:green)"
+error_symbol = "[❯](fg:red)"
+vimcmd_symbol = "[❮](fg:green)"
+
+# ── Tempo ──
+[cmd_duration]
+min_time = 2000
+style = "fg:yellow"
+format = "[󱎫 $duration]($style) "
+show_milliseconds = false
+
+[time]
+disabled = false
+style = "fg:text"
+format = "[ $time]($style)"
+time_format = "%H:%M"
+
+# ── DevOps ──
+[docker_context]
+symbol = "󰡨 "
+style = "fg:cyan"
+format = "[$symbol$context]($style) "
+only_with_files = true
+detect_files = ["docker-compose.yml", "docker-compose.yaml", "Dockerfile", "compose.yml", "compose.yaml"]
+
+[kubernetes]
+disabled = false
+symbol = "󱃾 "
+style = "fg:cyan"
+format = "[$symbol$context( \\($namespace\\))]($style) "
+detect_files = ["k8s", "kubernetes", "kustomization.yaml"]
+
+[terraform]
+disabled = false
+symbol = "󱁢 "
+style = "fg:purple"
+format = "[$symbol$version( $workspace)]($style) "
+detect_files = ["*.tf", "*.hcl", ".terraform"]
+
+[aws]
+disabled = false
+symbol = " "
+style = "fg:orange"
+format = "[$symbol($profile )(\\($region\\))]($style) "
+
+[gcloud]
+disabled = false
+symbol = "󱇶 "
+style = "fg:cyan"
+format = "[$symbol($project)]($style) "
+
+# ── Linguagens ──
+[java]
+symbol = " "
+style = "fg:orange"
+format = "[$symbol$version]($style) "
+detect_files = ["pom.xml", "build.gradle", "build.gradle.kts", ".java-version"]
+
+[ruby]
+symbol = " "
+style = "fg:red"
+format = "[$symbol$version]($style) "
+detect_files = ["Gemfile", ".ruby-version"]
+
+[python]
+symbol = " "
+style = "fg:yellow"
+format = '[${symbol}(${version} )(\($virtualenv\) )]($style)'
+detect_files = ["requirements.txt", "pyproject.toml", "Pipfile", ".python-version"]
+
+[nodejs]
+symbol = "󰎙 "
+style = "fg:green"
+format = "[$symbol$version]($style) "
+detect_files = ["package.json", ".nvmrc"]
+
+[golang]
+symbol = "󰟓 "
+style = "fg:cyan"
+format = "[$symbol$version]($style) "
+detect_files = ["go.mod", "go.sum"]
+
+[rust]
+symbol = "󱘗 "
+style = "fg:orange"
+format = "[$symbol$version]($style) "
+detect_files = ["Cargo.toml"]
+
+[elixir]
+symbol = " "
+style = "fg:purple"
+format = "[$symbol$version]($style) "
+detect_files = ["mix.exs"]
+
+[dart]
+symbol = " "
+style = "fg:cyan"
+format = "[$symbol$version]($style) "
+detect_files = ["pubspec.yaml"]
+
+[php]
+symbol = "󰌟 "
+style = "fg:purple"
+format = "[$symbol$version]($style) "
+detect_files = ["composer.json"]
+
+# ── Desabilitados ──
+[username]
+disabled = true
+
+[hostname]
+disabled = true
+
+[package]
+disabled = true
+
+[battery]
+disabled = true
+
+[memory_usage]
+disabled = true
+
+[container]
+disabled = true
+
+[shlvl]
+disabled = true
+
+[azure]
+disabled = true
+
+[lua]
+disabled = true
+
+[kotlin]
+disabled = true
+
+[zig]
+disabled = true
