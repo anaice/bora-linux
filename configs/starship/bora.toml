@@ -8,6 +8,7 @@ palette = "bora"
 format = """
 [┌](fg:border) $os\
 $directory\
+${custom.git_remote}\
 $git_branch\
 $git_status\
 $git_metrics\
@@ -31,7 +32,7 @@ $time
 [└](fg:border) $character"""
 
 add_newline = true
-command_timeout = 1000
+command_timeout = 2000
 
 [palettes.bora]
 border   = "#4a4e69"
@@ -216,6 +217,15 @@ symbol = "󰌟 "
 style = "fg:purple"
 format = "[$symbol$version]($style) "
 detect_files = ["composer.json"]
+
+# ── Git Remote (GitHub, GitLab, Bitbucket, etc) ──
+[custom.git_remote]
+command = "remote=$(git remote get-url origin 2>/dev/null); [ -z \"$remote\" ] && exit; repo=$(echo $remote | sed 's|.*[:/]\\([^/]*/[^/]*\\)$|\\1|;s|\\.git$||'); case $remote in *github*) printf '\\uf09b';; *gitlab*) printf '\\uf296';; *bitbucket*) printf '\\uf171';; *) printf '\\ue702';; esac; printf \" $repo\""
+detect_folders = [".git"]
+shell = ["bash", "--noprofile", "--norc"]
+style = "fg:dim"
+format = "[$output ]($style)"
+description = "Git remote provider icon"
 
 # ── Desabilitados ──
 [username]

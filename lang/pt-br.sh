@@ -277,6 +277,7 @@ L_TWEAKS_DOCKER="adicionado ao grupo docker"
 L_TWEAKS_ZSH="ZSH definido como shell padrao"
 L_TWEAKS_ZSH_NOT_FOUND="ZSH nao encontrado"
 L_TWEAKS_PATH="~/.local/bin adicionado ao PATH"
+L_TWEAKS_HOTCORNERS="Hot Corners do Cinnamon configurados (scale + expo)"
 
 # Temas
 L_STEP_THEMES="Instalar temas (GTK, icones, cursores)"
