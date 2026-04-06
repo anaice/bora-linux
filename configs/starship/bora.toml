@@ -85,7 +85,8 @@ format = "[$path]($style)[$read_only]($read_only_style) "
 [git_branch]
 symbol = " "
 style = "fg:purple"
-format = "[$symbol$branch(:$remote_branch)]($style) "
+format = "[$symbol$branch( → $remote_name/$remote_branch)]($style) "
+always_show_remote = true
 truncation_length = 30
 
 [git_status]
