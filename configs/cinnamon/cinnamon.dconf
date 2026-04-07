@@ -1,0 +1,58 @@
+[/]
+alttab-switcher-delay=100
+alttab-switcher-style='coverflow'
+hotcorner-layout=['scale:true:0', 'scale:false:0', 'expo:true:0', 'desktop:false:0']
+panels-autohide=['1:false']
+panels-enabled=['1:0:top']
+panels-height=['1:38']
+enabled-extensions=['BlurCinnamon@klangman', 'transparent-panels@germanfr', 'gTile@shuairan', 'cinnamon-maximus@fmete']
+
+[desktop/interface]
+cursor-theme='Bibata-Modern-Classic'
+gtk-theme='Mint-Y-Dark-Blue'
+icon-theme='Tela-dark'
+
+[desktop/input-sources]
+sources=[('xkb', 'br')]
+
+[desktop/keybindings]
+custom-list=['custom0', 'custom1']
+
+[desktop/keybindings/custom-keybindings/custom0]
+binding=['<Super>t']
+command='tabby'
+name='Tabby'
+
+[desktop/keybindings/custom-keybindings/custom1]
+binding=['<Super>Print']
+command='flatpak run org.flameshot.Flameshot gui'
+name='Flameshot'
+
+[desktop/peripherals/keyboard]
+delay=uint32 500
+numlock-state=true
+repeat-interval=uint32 30
+
+[desktop/sound]
+event-sounds=false
+
+[desktop/wm/preferences]
+min-window-opacity=30
+
+[gestures]
+swipe-down-2='PUSH_TILE_DOWN::end'
+swipe-down-3='TOGGLE_OVERVIEW::end'
+swipe-down-4='VOLUME_DOWN::end'
+swipe-left-2='PUSH_TILE_LEFT::end'
+swipe-left-3='WORKSPACE_NEXT::end'
+swipe-left-4='WINDOW_WORKSPACE_PREVIOUS::end'
+swipe-right-2='PUSH_TILE_RIGHT::end'
+swipe-right-3='WORKSPACE_PREVIOUS::end'
+swipe-right-4='WINDOW_WORKSPACE_NEXT::end'
+swipe-up-2='PUSH_TILE_UP::end'
+swipe-up-3='TOGGLE_EXPO::end'
+swipe-up-4='VOLUME_UP::end'
+tap-3='MEDIA_PLAY_PAUSE::end'
+
+[theme]
+name='Fluent-Dark-compact'

@@ -1594,11 +1594,18 @@ limpeza_e_ajustes() {
         log_ok "$L_TWEAKS_PATH"
     fi
 
-    # Cinnamon Hot Corners
+    # Cinnamon presets (shortcuts, hot corners, gestures, theme, extensions)
     if [ "$XDG_CURRENT_DESKTOP" = "X-Cinnamon" ] || pgrep -x cinnamon &>/dev/null; then
-        sudo -u "$USUARIO_REAL" dbus-launch gsettings set org.cinnamon hotcorner-layout \
-            "['scale:true:150', 'desktop:false:0', 'desktop:false:0', 'expo:true:150']"
-        log_ok "$L_TWEAKS_HOTCORNERS"
+        local CINNAMON_CONF="$SCRIPT_DIR/configs/cinnamon/cinnamon.dconf"
+        if [ -f "$CINNAMON_CONF" ]; then
+            echo ""
+            if gum confirm "$L_TWEAKS_CINNAMON_CONFIRM"; then
+                sudo -u "$USUARIO_REAL" dbus-launch dconf load /org/cinnamon/ < "$CINNAMON_CONF"
+                log_ok "$L_TWEAKS_CINNAMON_DONE"
+            else
+                log_skip "$L_TWEAKS_CINNAMON_SKIP"
+            fi
+        fi
     fi
 }
 
