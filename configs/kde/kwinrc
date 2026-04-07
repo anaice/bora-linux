@@ -1,0 +1,10 @@
+[Desktops]
+Number=2
+Rows=1
+
+[Effect-overview]
+BorderActivate=9
+
+[Plugins]
+blurEnabled=true
+contrastEnabled=true

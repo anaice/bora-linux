@@ -1,0 +1,9 @@
+[custom0]
+exec=tabby
+key=Meta+T
+name=Tabby
+
+[custom1]
+exec=flatpak run org.flameshot.Flameshot gui
+key=Meta+Print
+name=Flameshot

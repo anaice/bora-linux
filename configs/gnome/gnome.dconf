@@ -1,0 +1,42 @@
+[/]
+favorite-apps=['org.gnome.Nautilus.desktop', 'tabby.desktop', 'com.visualstudio.code.desktop', 'brave-browser.desktop']
+
+[desktop/interface]
+cursor-theme='Bibata-Modern-Classic'
+gtk-theme='Fluent-Dark'
+icon-theme='Tela-dark'
+color-scheme='prefer-dark'
+clock-show-weekday=true
+
+[desktop/input-sources]
+sources=[('xkb', 'us+intl')]
+
+[desktop/wm/keybindings]
+close=['<Super>q']
+
+[settings-daemon/plugins/media-keys]
+custom-keybindings=['/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/', '/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/']
+
+[settings-daemon/plugins/media-keys/custom-keybindings/custom0]
+binding='<Super>t'
+command='tabby'
+name='Tabby'
+
+[settings-daemon/plugins/media-keys/custom-keybindings/custom1]
+binding='<Super>Print'
+command='flatpak run org.flameshot.Flameshot gui'
+name='Flameshot'
+
+[desktop/peripherals/keyboard]
+delay=uint32 500
+repeat-interval=uint32 30
+
+[desktop/sound]
+event-sounds=false
+
+[desktop/peripherals/touchpad]
+tap-to-click=true
+two-finger-scrolling-enabled=true
+
+[shell]
+favorite-apps=['org.gnome.Nautilus.desktop', 'tabby.desktop', 'com.visualstudio.code.desktop', 'brave-browser.desktop']
