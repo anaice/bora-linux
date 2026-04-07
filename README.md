@@ -30,19 +30,19 @@ O script usa [gum](https://github.com/charmbracelet/gum) para menus interativos 
 | Etapa | Default | O que faz |
 |---|---|---|
 | Cleanup | OFF | Remove fontes APT duplicadas, chaves GPG orfas, Snap completo |
-| Repositorios APT | ON | Configura repos: 1Password, Brave, Chrome, Docker, Mise, Eza, AnyDesk |
+| Repositorios APT | ON | Configura repos: 1Password, Brave, Chrome, Docker, Mise, Eza, AnyDesk, Ulauncher |
 | Atualizar sistema | OFF | `apt update` + `apt upgrade` + `apt dist-upgrade` |
-| Pacotes APT | ON | bat, fzf, eza, btop, Docker, Neovim, ripgrep, vlc, meld, etc |
-| Pacotes Flatpak | ON | VS Code, Insomnia, Postman, Draw.io, Discord, Flameshot, DBeaver, etc |
+| Pacotes APT | ON | bat, fzf, eza, btop, Docker, Neovim, ripgrep, Plank, Ulauncher, etc |
+| Pacotes Flatpak | ON | VS Code, Insomnia, Postman, Draw.io, Discord, Flameshot, DBeaver, ZapZap, etc |
 | Nerd Fonts | ON | JetBrainsMono Nerd Font |
-| Scripts externos | ON | JetBrains Toolbox, Lazygit, Lazydocker, Calibre, Claude Code, Zed, Starship, Evolus Pencil |
+| Scripts externos | ON | JetBrains Toolbox, Lazygit, Lazydocker, Calibre, Claude Code, Zed, Starship, Pencil, Tabby, Cursor, Antigravity |
 | Linguagens (Mise) | ON | Java, Ruby, Flutter, Python, Go, Rust, Clojure, Elixir |
 | LazyVim | ON | Clona LazyVim starter config |
 | Starship | ON | Prompt com escolha de preset (bora, tokyo-night, gruvbox, etc) |
 | ZSH | ON | Zoxide, plugins, `.zshrc` completo com aliases |
-| Temas | OFF | Temas GTK, icones e cursores (Orchis, Colloid, Fluent, Papirus, Bibata, etc) |
+| Temas | OFF | Temas GTK, icones e cursores (Orchis, Colloid, Fluent, Skeuos, Papirus, Bibata, etc) |
 | Google Drive | OFF | rclone bisync com sync automatico via systemd timer |
-| Ajustes finais | ON | Docker group, ZSH padrao, PATH |
+| Ajustes finais | ON | Docker group, ZSH padrao, PATH, presets Cinnamon (opcional) |
 
 ## Estrutura do projeto
 
@@ -50,12 +50,14 @@ O script usa [gum](https://github.com/charmbracelet/gum) para menus interativos 
 bora-linux/
 ├── install.sh                          # Script principal
 ├── configs/
-│   └── starship/
-│       ├── bora.toml                   # Preset bora (dark hacker, devops)
-│       ├── pastel-powerline.toml       # Powerline pastel
-│       ├── tokyo-night.toml            # Tokyo Night escuro
-│       ├── gruvbox-rainbow.toml        # Tons quentes retro
-│       └── catppuccin-powerline.toml   # Catppuccin pastel
+│   ├── starship/
+│   │   ├── bora.toml                   # Preset bora (dark hacker, devops)
+│   │   ├── pastel-powerline.toml       # Powerline pastel
+│   │   ├── tokyo-night.toml            # Tokyo Night escuro
+│   │   ├── gruvbox-rainbow.toml        # Tons quentes retro
+│   │   └── catppuccin-powerline.toml   # Catppuccin pastel
+│   └── cinnamon/
+│       └── cinnamon.dconf              # Presets Cinnamon (atalhos, cantos, gestos)
 ├── lang/
 │   ├── pt-br.sh                        # Portugues (Brasil)
 │   └── en.sh                           # English
@@ -82,7 +84,8 @@ Requer [Nerd Font](https://www.nerdfonts.com/) — o script instala JetBrainsMon
 
 Prompt dark e minimalista focado em DevOps:
 - Icone do OS + diretorio
-- Git branch + status + metricas (+/-)
+- Git remote provider (GitHub/GitLab/Bitbucket) + user/repo + branch local e remota
+- Git status + metricas (+/-)
 - Docker, Kubernetes, Terraform, AWS, GCloud
 - Linguagens (Java, Ruby, Python, Node, Go, Rust, etc)
 - Duracao do comando + hora
@@ -92,7 +95,7 @@ Prompt dark e minimalista focado em DevOps:
 
 O script gera um `.zshrc` completo com:
 - **Aliases**: `ls` (eza), `cat` (bat), `ff` (fzf), atalhos git, docker, rails, nvim
-- **Aliases Flatpak**: todos os apps Flatpak acessiveis por nome (flameshot, discord, code, dbeaver, etc)
+- **Aliases Flatpak**: todos os apps Flatpak acessiveis por nome (flameshot, discord, code, dbeaver, zapzap, etc)
 - **Zoxide**: `cd` inteligente que aprende seus diretorios
 - **Plugins**: autosuggestions, syntax-highlighting, history-substring-search
 - **Keybinds**: Ctrl+setas (navegar palavras), Alt+setas (inicio/fim da linha)
@@ -116,6 +119,7 @@ O script gera um `.zshrc` completo com:
 | `code` | VS Code via Flatpak |
 | `discord` | Discord via Flatpak |
 | `dbeaver` | DBeaver via Flatpak |
+| `zapzap` | ZapZap (WhatsApp) via Flatpak |
 | `install` | `sudo apt install` (ou pacman/dnf) |
 | `upgrade` | `sudo apt update && sudo apt upgrade` |
 
@@ -125,9 +129,19 @@ Todos compativeis com GNOME e Cinnamon:
 
 | Tipo | Tema |
 |---|---|
-| GTK | Orchis, Colloid, Fluent, Graphite, Lavanda |
+| GTK | Orchis, Colloid, Fluent, Graphite, Lavanda, Skeuos |
 | Icones | Papirus, Tela, Colloid Icons |
 | Cursores | Bibata Modern |
+
+## Cinnamon Presets
+
+Na etapa de ajustes finais (se detectar Cinnamon), o script oferece aplicar presets:
+- Atalhos de teclado (Super+T: Tabby, Super+Print: Flameshot)
+- Hot corners (Scale, Expo)
+- Gestos de touchpad (workspaces, tile, volume)
+- Tema (Fluent-Dark, Tela icons, Bibata cursor)
+- Extensoes (Blur, Transparent Panels, gTile, Maximus)
+- Alt+Tab coverflow
 
 ## Google Drive
 
