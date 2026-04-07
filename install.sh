@@ -99,7 +99,7 @@ run_cmd() {
     local cmd="$*"
 
     echo "=== [$desc] ===" >> "$LOG_FILE"
-    bash -c "$cmd" >> "$LOG_FILE" 2>&1 &
+    bash -c "$cmd" >> "$LOG_FILE" 2>&1 </dev/null &
     local pid=$!
     local i=0
     local spin='⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
@@ -283,6 +283,8 @@ menu_apt() {
         "neovim"                 "$L_APT_neovim"           ON \
         "ripgrep"                "$L_APT_ripgrep"          ON \
         "copyq"                  "$L_APT_copyq"            ON \
+        "plank"                  "$L_APT_plank"            ON \
+        "ulauncher"              "$L_APT_ulauncher"        ON \
         "tldr"                   "$L_APT_tldr"             ON \
         "libyaml-dev"            "$L_APT_libyaml"          ON \
         "libxcb-cursor0"         "$L_APT_libxcb"           ON \
@@ -306,7 +308,8 @@ menu_flatpak() {
         "io.github.Qalculate"            "$L_FLATPAK_qalculate"   ON \
         "org.flameshot.Flameshot"         "$L_FLATPAK_flameshot"   ON \
         "io.github.zyedidia.micro"       "$L_FLATPAK_micro"       ON \
-        "io.dbeaver.DBeaverCommunity"    "$L_FLATPAK_dbeaver"     ON
+        "io.dbeaver.DBeaverCommunity"    "$L_FLATPAK_dbeaver"     ON \
+        "com.rtosta.zapzap"              "$L_FLATPAK_zapzap"      ON
 }
 
 menu_scripts() {
@@ -318,7 +321,10 @@ menu_scripts() {
         "claude"            "$L_SCRIPTS_claude"       ON \
         "zed"               "$L_SCRIPTS_zed"          ON \
         "starship-bin"      "$L_SCRIPTS_starship"     ON \
-        "pencil"            "$L_SCRIPTS_pencil"       ON
+        "pencil"            "$L_SCRIPTS_pencil"       ON \
+        "tabby"             "$L_SCRIPTS_tabby"        ON \
+        "cursor"            "$L_SCRIPTS_cursor"       ON \
+        "antigravity"       "$L_SCRIPTS_antigravity"  ON
 }
 
 menu_linguagens() {
@@ -533,6 +539,10 @@ configurar_repositorios() {
     run_cmd "Repo: AnyDesk" \
         "curl -fsSL https://keys.anydesk.com/repos/DEB-GPG-KEY | gpg --dearmor --yes -o /etc/apt/keyrings/anydesk.gpg && echo 'deb [arch=amd64 signed-by=/etc/apt/keyrings/anydesk.gpg] http://deb.anydesk.com/ all main' | tee /etc/apt/sources.list.d/anydesk-stable.list > /dev/null" || true
 
+    # ULAUNCHER
+    run_cmd "Repo: Ulauncher" \
+        "add-apt-repository -y ppa:agornostal/ulauncher 2>/dev/null" || true
+
     run_cmd "$L_REPOS_UPDATE" "apt-get update -qq" || \
         log_warn "$L_REPOS_FAIL"
 }
@@ -730,7 +740,38 @@ DTEOF
                     log_ok "Evolus Pencil ($L_ALREADY_INSTALLED)"
                 else
                     run_cmd "$L_INSTALLING Evolus Pencil" \
-                        "wget -q 'https://pencil.evolus.vn/dl/V3.1.1.ga/Pencil_3.1.1.ga_amd64.deb' -O /tmp/pencil.deb && dpkg -i /tmp/pencil.deb && apt-get install -f -y; rm -f /tmp/pencil.deb" || true
+                        "curl -fsSL -k --connect-timeout 30 --max-time 600 -o /var/tmp/pencil.deb 'https://pencil.evolus.vn/dl/V3.1.1.ga/Pencil_3.1.1.ga_amd64.deb' && dpkg -i /var/tmp/pencil.deb && apt-get install -f -y; rm -f /var/tmp/pencil.deb" || true
+                fi
+                ;;
+            tabby)
+                if command -v tabby &>/dev/null || dpkg -s tabby-terminal &>/dev/null 2>&1; then
+                    log_ok "Tabby ($L_ALREADY_INSTALLED)"
+                else
+                    local TABBY_VERSION TABBY_DEB
+                    TABBY_VERSION=$(curl -s "https://api.github.com/repos/Eugeny/tabby/releases/latest" | grep -oP '"tag_name": "v\K[^"]+')
+                    if [ -n "$TABBY_VERSION" ]; then
+                        TABBY_DEB="/tmp/tabby.deb"
+                        run_cmd "$L_INSTALLING Tabby $TABBY_VERSION" \
+                            "wget -q 'https://github.com/Eugeny/tabby/releases/download/v${TABBY_VERSION}/tabby-${TABBY_VERSION}-linux-x64.deb' -O '$TABBY_DEB' && dpkg -i '$TABBY_DEB' && apt-get install -f -y; rm -f '$TABBY_DEB'" || true
+                    else
+                        log_warn "$L_TABBY_NO_VER"
+                    fi
+                fi
+                ;;
+            cursor)
+                if command -v cursor &>/dev/null || dpkg -s cursor &>/dev/null 2>&1; then
+                    log_ok "Cursor ($L_ALREADY_INSTALLED)"
+                else
+                    run_cmd "$L_INSTALLING Cursor" \
+                        "wget -q 'https://api2.cursor.sh/updates/download/golden/linux-x64-deb/cursor/3.0' -O /tmp/cursor.deb && dpkg -i /tmp/cursor.deb && apt-get install -f -y; rm -f /tmp/cursor.deb" || true
+                fi
+                ;;
+            antigravity)
+                if dpkg -s antigravity &>/dev/null 2>&1; then
+                    log_ok "Google Antigravity ($L_ALREADY_INSTALLED)"
+                else
+                    run_cmd "$L_INSTALLING Google Antigravity" \
+                        "mkdir -p /etc/apt/keyrings && curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg | gpg --dearmor --yes -o /etc/apt/keyrings/antigravity-repo-key.gpg && echo 'deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main' | tee /etc/apt/sources.list.d/antigravity.list > /dev/null && apt-get update -qq && apt-get install -y antigravity" || true
                 fi
                 ;;
         esac
@@ -995,6 +1036,7 @@ command -v flatpak &>/dev/null && {
   alias qalculate="flatpak run io.github.Qalculate 2>/dev/null"
   alias micro="flatpak run io.github.zyedidia.micro 2>/dev/null"
   alias dbeaver="flatpak run io.dbeaver.DBeaverCommunity 2>/dev/null"
+  alias zapzap="flatpak run com.rtosta.zapzap 2>/dev/null"
   alias code="flatpak run com.visualstudio.code 2>/dev/null"
 }
 
@@ -1049,7 +1091,8 @@ menu_themes() {
         "papirus"         "$L_THEMES_papirus"         OFF \
         "tela-icons"      "$L_THEMES_tela"            OFF \
         "colloid-icons"   "$L_THEMES_colloid_icons"   OFF \
-        "bibata"          "$L_THEMES_bibata"          OFF
+        "bibata"          "$L_THEMES_bibata"          OFF \
+        "skeuos"          "$L_THEMES_skeuos"         OFF
 }
 
 instalar_themes() {
@@ -1146,6 +1189,14 @@ instalar_themes() {
                     else
                         log_warn "$L_THEMES_BIBATA_FAIL"
                     fi
+                fi
+                ;;
+            skeuos)
+                if ls "$THEME_DIR"/Skeuos-* &>/dev/null; then
+                    log_ok "Skeuos ($L_ALREADY_INSTALLED)"
+                else
+                    run_cmd "$L_INSTALLING Skeuos GTK Theme" \
+                        "rm -rf /tmp/skeuos-gtk && git clone --depth 1 https://github.com/daniruiz/skeuos-gtk.git /tmp/skeuos-gtk && cp -r /tmp/skeuos-gtk/themes/Skeuos-Blue-Dark $THEME_DIR/ && cp -r /tmp/skeuos-gtk/themes/Skeuos-Blue-Light $THEME_DIR/ && cp -r /tmp/skeuos-gtk/themes/Skeuos-Grey-Dark $THEME_DIR/ && cp -r /tmp/skeuos-gtk/themes/Skeuos-Black-Light $THEME_DIR/; rm -rf /tmp/skeuos-gtk" || true
                 fi
                 ;;
         esac
