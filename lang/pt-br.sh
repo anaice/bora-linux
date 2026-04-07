@@ -33,6 +33,7 @@ L_STEP_LAZYVIM="Configurar LazyVim (Neovim)"
 L_STEP_STARSHIP="Configurar Starship (Prompt)"
 L_STEP_ZSH="Configurar ZSH completo"
 L_STEP_GDRIVE="Google Drive (rclone bisync)"
+L_STEP_KEYBOARD="Correcao de teclado US Intl (cedilha via uim)"
 L_STEP_TWEAKS="Limpeza e ajustes finais"
 
 # Cleanup
@@ -167,6 +168,7 @@ L_SCRIPTS_tabby="Tabby: terminal moderno com gerenciador SSH"
 L_TABBY_NO_VER="Nao foi possivel obter a versao do Tabby"
 L_SCRIPTS_cursor="Cursor: editor de codigo com IA"
 L_SCRIPTS_antigravity="Antigravity: IDE do Google com agentes IA"
+L_SCRIPTS_awscli="AWS CLI: linha de comando da Amazon Web Services"
 
 L_TB_ALREADY="JetBrains Toolbox ($L_ALREADY_INSTALLED)"
 L_TB_NO_URL="Nao foi possivel obter URL do JetBrains Toolbox"
@@ -276,6 +278,12 @@ L_GDRIVE_CONFIRM_DESC="Remover conta '%s'?\n\nIsso vai:\n- Remover o remote do r
 L_GDRIVE_REMOVED="removida do rclone"
 L_GDRIVE_FILES_KEPT="Arquivos locais mantidos em ~/GoogleDrive/ (delete manualmente se quiser)"
 L_GDRIVE_REMOVE_CANCELLED="Remocao cancelada"
+
+# Teclado US Intl (cedilha)
+L_KEYBOARD_SECTION="Correcao de teclado US International"
+L_KEYBOARD_UIM="uim instalado"
+L_KEYBOARD_PROFILE="GTK_IM_MODULE/QT_IM_MODULE configurados em ~/.profile"
+L_KEYBOARD_XCOMPOSE="~/.XCompose configurado (cedilha + acentos)"
 
 # Ajustes finais
 L_TWEAKS_SECTION="Ajustes finais"

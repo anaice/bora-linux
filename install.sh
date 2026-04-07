@@ -246,6 +246,7 @@ menu_principal() {
         "zsh  $L_STEP_ZSH" \
         "themes  $L_STEP_THEMES" \
         "gdrive  $L_STEP_GDRIVE" \
+        "keyboard  $L_STEP_KEYBOARD" \
         "ajustes  $L_STEP_TWEAKS") || { log_warn "$L_CANCELLED"; exit 0; }
 
     [ -z "$ETAPAS" ] && { log_warn "$L_CANCELLED"; exit 0; }
@@ -324,7 +325,8 @@ menu_scripts() {
         "pencil"            "$L_SCRIPTS_pencil"       ON \
         "tabby"             "$L_SCRIPTS_tabby"        ON \
         "cursor"            "$L_SCRIPTS_cursor"       ON \
-        "antigravity"       "$L_SCRIPTS_antigravity"  ON
+        "antigravity"       "$L_SCRIPTS_antigravity"  ON \
+        "awscli"            "$L_SCRIPTS_awscli"       ON
 }
 
 menu_linguagens() {
@@ -772,6 +774,14 @@ DTEOF
                 else
                     run_cmd "$L_INSTALLING Google Antigravity" \
                         "mkdir -p /etc/apt/keyrings && curl -fsSL https://us-central1-apt.pkg.dev/doc/repo-signing-key.gpg | gpg --dearmor --yes -o /etc/apt/keyrings/antigravity-repo-key.gpg && echo 'deb [signed-by=/etc/apt/keyrings/antigravity-repo-key.gpg] https://us-central1-apt.pkg.dev/projects/antigravity-auto-updater-dev/ antigravity-debian main' | tee /etc/apt/sources.list.d/antigravity.list > /dev/null && apt-get update -qq && apt-get install -y antigravity" || true
+                fi
+                ;;
+            awscli)
+                if command -v aws &>/dev/null; then
+                    log_ok "AWS CLI ($L_ALREADY_INSTALLED)"
+                else
+                    run_cmd "$L_INSTALLING AWS CLI v2" \
+                        "curl -fsSL 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o /tmp/awscliv2.zip && unzip -qo /tmp/awscliv2.zip -d /tmp && /tmp/aws/install; rm -rf /tmp/awscliv2.zip /tmp/aws" || true
                 fi
                 ;;
         esac
@@ -1561,7 +1571,31 @@ EOF
 }
 
 # ==========================================
-# 14. CLEANUP AND FINAL TWEAKS
+# 14. KEYBOARD FIX (US Intl cedilla via uim)
+# ==========================================
+configurar_teclado() {
+    section "$L_KEYBOARD_SECTION"
+
+    # Install uim
+    run_cmd "$L_KEYBOARD_UIM" apt-get install -y -qq uim
+
+    # Set input method modules in ~/.profile
+    local PROFILE="$HOME_USUARIO/.profile"
+    if ! grep -q 'GTK_IM_MODULE="uim"' "$PROFILE" 2>/dev/null; then
+        printf '\nexport GTK_IM_MODULE="uim"\nexport QT_IM_MODULE="uim"\n' >> "$PROFILE"
+        chown "$USUARIO_REAL:$USUARIO_REAL" "$PROFILE"
+        log_ok "$L_KEYBOARD_PROFILE"
+    fi
+
+    # Copy XCompose (based on lucasfais/xcompose-pt-BR_US)
+    local XCOMPOSE="$HOME_USUARIO/.XCompose"
+    cp "$SCRIPT_DIR/configs/keyboard/XCompose" "$XCOMPOSE"
+    chown "$USUARIO_REAL:$USUARIO_REAL" "$XCOMPOSE"
+    log_ok "$L_KEYBOARD_XCOMPOSE"
+}
+
+# ==========================================
+# 15. CLEANUP AND FINAL TWEAKS
 # ==========================================
 limpeza_e_ajustes() {
     section "$L_TWEAKS_SECTION"
@@ -1634,6 +1668,7 @@ main() {
     is_selected "zsh"      && configurar_zsh_completo
     is_selected "themes"   && instalar_themes
     is_selected "gdrive"   && configurar_google_drive
+    is_selected "keyboard" && configurar_teclado
     is_selected "ajustes"  && limpeza_e_ajustes
 
     echo ""

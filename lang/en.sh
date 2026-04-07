@@ -33,6 +33,7 @@ L_STEP_LAZYVIM="Configure LazyVim (Neovim)"
 L_STEP_STARSHIP="Configure Starship (Prompt)"
 L_STEP_ZSH="Configure full ZSH setup"
 L_STEP_GDRIVE="Google Drive (rclone bisync)"
+L_STEP_KEYBOARD="Keyboard fix US Intl (cedilla via uim)"
 L_STEP_TWEAKS="Cleanup and final tweaks"
 
 # Cleanup
@@ -167,6 +168,7 @@ L_SCRIPTS_tabby="Tabby: modern terminal with SSH manager"
 L_TABBY_NO_VER="Could not fetch Tabby version"
 L_SCRIPTS_cursor="Cursor: AI-powered code editor"
 L_SCRIPTS_antigravity="Antigravity: Google IDE with AI agents"
+L_SCRIPTS_awscli="AWS CLI: Amazon Web Services command line"
 
 L_TB_ALREADY="JetBrains Toolbox ($L_ALREADY_INSTALLED)"
 L_TB_NO_URL="Could not get JetBrains Toolbox URL"
@@ -276,6 +278,12 @@ L_GDRIVE_CONFIRM_DESC="Remove account '%s'?\n\nThis will:\n- Remove the rclone r
 L_GDRIVE_REMOVED="removed from rclone"
 L_GDRIVE_FILES_KEPT="Local files kept in ~/GoogleDrive/ (delete manually if needed)"
 L_GDRIVE_REMOVE_CANCELLED="Removal cancelled"
+
+# Keyboard US Intl (cedilla)
+L_KEYBOARD_SECTION="US International keyboard fix"
+L_KEYBOARD_UIM="uim installed"
+L_KEYBOARD_PROFILE="GTK_IM_MODULE/QT_IM_MODULE configured in ~/.profile"
+L_KEYBOARD_XCOMPOSE="~/.XCompose configured (cedilla + accents)"
 
 # Final tweaks
 L_TWEAKS_SECTION="Final tweaks"
