@@ -55,6 +55,15 @@ L_TWEAKS_KDE_CONFIRM="Aplicar presets do KDE Plasma? (atalhos, tema, painel)"
 L_TWEAKS_KDE_DONE="Presets do KDE Plasma aplicados"
 L_TWEAKS_KDE_SKIP="Presets do KDE Plasma ignorados"
 
+# Arch (pacman)
+L_STEP_PACMAN="Instalar pacotes (pacman + yay)"
+L_PACMAN_TITLE="Pacotes Pacman/AUR"
+L_PACMAN_DESC="Selecione os pacotes para instalar:"
+L_PACMAN_SECTION="Instalacao de pacotes (pacman + AUR)"
+L_PACMAN_NONE="Nenhum pacote selecionado."
+L_CLEANUP_PACMAN_CACHE="Cache do pacman (pacman -Sc)"
+L_CLEANUP_PACMAN_CLEAN="Limpando cache do pacman"
+
 # Cleanup
 L_CLEANUP_TITLE="Cleanup pre-instalacao"
 L_CLEANUP_DESC="Selecione o que limpar:"

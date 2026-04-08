@@ -55,6 +55,15 @@ L_TWEAKS_KDE_CONFIRM="Apply KDE Plasma presets? (shortcuts, theme, panel)"
 L_TWEAKS_KDE_DONE="KDE Plasma presets applied"
 L_TWEAKS_KDE_SKIP="KDE Plasma presets skipped"
 
+# Arch (pacman)
+L_STEP_PACMAN="Install packages (pacman + yay)"
+L_PACMAN_TITLE="Pacman/AUR Packages"
+L_PACMAN_DESC="Select packages to install:"
+L_PACMAN_SECTION="Package installation (pacman + AUR)"
+L_PACMAN_NONE="No packages selected."
+L_CLEANUP_PACMAN_CACHE="Pacman cache (pacman -Sc)"
+L_CLEANUP_PACMAN_CLEAN="Cleaning pacman cache"
+
 # Cleanup
 L_CLEANUP_TITLE="Pre-install cleanup"
 L_CLEANUP_DESC="Select what to clean:"
