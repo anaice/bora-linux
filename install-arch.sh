@@ -57,6 +57,13 @@ if [ -z "$USUARIO_REAL" ]; then
 fi
 HOME_USUARIO=$(getent passwd "$USUARIO_REAL" | cut -d: -f6)
 
+# --- Temporary NOPASSWD for yay (AUR builds run as user but need sudo internally) ---
+SUDOERS_TMP="/etc/sudoers.d/bora-linux-tmp"
+echo "$USUARIO_REAL ALL=(ALL) NOPASSWD: ALL" > "$SUDOERS_TMP"
+chmod 440 "$SUDOERS_TMP"
+cleanup_sudoers() { rm -f "$SUDOERS_TMP"; }
+trap cleanup_sudoers EXIT INT TERM
+
 # --- Install yay if needed ---
 if ! command -v yay &>/dev/null; then
     pacman -S --noconfirm --needed git base-devel
@@ -216,17 +223,16 @@ checklist() {
         i=$((i + 3))
     done
 
-    # Build --selected argument
-    local selected_arg=""
-    if [ ${#selected_items[@]} -gt 0 ]; then
-        local IFS=","
-        selected_arg="--selected=${selected_items[*]}"
-    fi
+    # Build gum args with --selected for each pre-selected item
+    local gum_args=(--no-limit --header="  $title — $desc" --height=50)
+    for sel in "${selected_items[@]}"; do
+        gum_args+=(--selected="$sel")
+    done
 
     # Run gum choose
     echo ""
     local RESULT
-    RESULT=$(printf '%s\n' "${display_lines[@]}" | gum choose --no-limit --header="  $title — $desc" --height=50 $selected_arg) || return 1
+    RESULT=$(printf '%s\n' "${display_lines[@]}" | gum choose "${gum_args[@]}") || return 1
 
     [ -z "$RESULT" ] && return 1
 
@@ -279,22 +285,26 @@ menu_pacman() {
         "google-chrome"          "$L_APT_google_chrome"    ON \
         "1password"              "$L_APT_1password"        ON \
         "anydesk-bin"            "$L_APT_anydesk"          OFF \
+        "zoom"                   "$L_APT_zoom"             OFF \
         "docker"                 "$L_APT_docker_ce"        ON \
         "docker-buildx"          "$L_APT_docker_buildx"    ON \
         "docker-compose"         "$L_APT_docker_compose"   ON \
         "mise"                   "$L_APT_mise"             ON \
         "neovim"                 "$L_APT_neovim"           ON \
         "ripgrep"                "$L_APT_ripgrep"          ON \
+        "flameshot"              "$L_FLATPAK_flameshot"    ON \
         "copyq"                  "$L_APT_copyq"            ON \
-        "plank"                  "$L_APT_plank"            ON \
-        "ulauncher"              "$L_APT_ulauncher"        ON \
+        "micro"                  "$L_FLATPAK_micro"        ON \
         "tldr"                   "$L_APT_tldr"             ON \
-        "libyaml"                "$L_APT_libyaml"          ON \
         "xcb-util-cursor"        "$L_APT_libxcb"           ON \
-        "mesa"                   "$L_APT_libopengl"        ON \
-        "autoconf"               "$L_APT_autoconf"         ON \
-        "openssl"                "$L_APT_libssl"           ON \
-        "ncurses"                "$L_APT_libncurses"       ON
+        "lazygit"                "$L_SCRIPTS_lazygit"      ON \
+        "lazydocker"             "$L_SCRIPTS_lazydocker"   ON \
+        "calibre"                "$L_SCRIPTS_calibre"      ON \
+        "starship"               "$L_SCRIPTS_starship"     ON \
+        "tabby-bin"              "$L_SCRIPTS_tabby"        ON \
+        "cursor-bin"             "$L_SCRIPTS_cursor"       ON \
+        "pencil-bin"             "$L_SCRIPTS_pencil"       ON \
+        "aws-cli-v2"             "$L_SCRIPTS_awscli"       ON
 }
 
 menu_flatpak() {
@@ -309,8 +319,8 @@ menu_flatpak() {
         "org.localsend.localsend_app"    "$L_FLATPAK_localsend"   ON \
         "it.mijorus.smile"               "$L_FLATPAK_smile"       ON \
         "io.github.Qalculate"            "$L_FLATPAK_qalculate"   ON \
-        "org.flameshot.Flameshot"         "$L_FLATPAK_flameshot"   ON \
-        "io.github.zyedidia.micro"       "$L_FLATPAK_micro"       ON \
+        "org.flameshot.Flameshot"         "$L_FLATPAK_flameshot"   OFF \
+        "io.github.zyedidia.micro"       "$L_FLATPAK_micro"       OFF \
         "io.dbeaver.DBeaverCommunity"    "$L_FLATPAK_dbeaver"     ON \
         "com.rtosta.zapzap"              "$L_FLATPAK_zapzap"      ON
 }
@@ -318,16 +328,8 @@ menu_flatpak() {
 menu_scripts() {
     checklist "$L_SCRIPTS_TITLE" "$L_SCRIPTS_DESC" 22 78 10 \
         "jetbrains-toolbox" "$L_SCRIPTS_jetbrains"   ON \
-        "lazygit"           "$L_SCRIPTS_lazygit"      ON \
-        "lazydocker"        "$L_SCRIPTS_lazydocker"   ON \
-        "calibre"           "$L_SCRIPTS_calibre"      ON \
         "claude"            "$L_SCRIPTS_claude"       ON \
-        "zed"               "$L_SCRIPTS_zed"          ON \
-        "starship-bin"      "$L_SCRIPTS_starship"     ON \
-        "pencil"            "$L_SCRIPTS_pencil"       ON \
-        "tabby"             "$L_SCRIPTS_tabby"        ON \
-        "cursor"            "$L_SCRIPTS_cursor"       ON \
-        "awscli"            "$L_SCRIPTS_awscli"       ON
+        "zed"               "$L_SCRIPTS_zed"          ON
 }
 
 menu_linguagens() {
@@ -403,6 +405,16 @@ executar_cleanup() {
 # ==========================================
 atualizar_sistema() {
     section "$L_UPGRADE_SECTION"
+
+    if ! command -v reflector &>/dev/null; then
+        run_cmd "$L_UPGRADE_REFLECTOR_INSTALL" "pacman -S --noconfirm reflector"
+    fi
+
+    if command -v reflector &>/dev/null; then
+        run_cmd "$L_UPGRADE_MIRRORS" \
+            "reflector --latest 10 --sort rate --protocol https --save /etc/pacman.d/mirrorlist"
+    fi
+
     run_cmd "$L_UPGRADE_UPGRADE" "pacman -Syu --noconfirm"
 }
 
@@ -416,12 +428,15 @@ instalar_pacman() {
     PACOTES=$(menu_pacman) || { log_skip "$L_PACMAN_NONE"; return 0; }
 
     # Separate official and AUR packages
-    local AUR_PKGS="brave-bin google-chrome 1password anydesk-bin mise"
+    local AUR_PKGS="brave-bin google-chrome 1password anydesk-bin zoom mise tabby-bin cursor-bin pencil-bin aws-cli-v2"
     local FALHAS=()
 
     for pacote in $PACOTES; do
         if pacman -Q "$pacote" &>/dev/null; then
             log_ok "$pacote ($L_ALREADY_INSTALLED)"
+        elif [[ "$pacote" == "pencil-bin" ]]; then
+            run_cmd "$L_INSTALLING $pacote (AUR)" \
+                "mkdir -p /tmp/bora-curl && echo 'insecure' > /tmp/bora-curl/.curlrc && sudo -u $USUARIO_REAL env CURL_HOME=/tmp/bora-curl yay -S --noconfirm $pacote; rm -rf /tmp/bora-curl" || FALHAS+=("$pacote")
         elif echo "$AUR_PKGS" | grep -qw "$pacote"; then
             run_cmd "$L_INSTALLING $pacote (AUR)" \
                 "sudo -u $USUARIO_REAL yay -S --noconfirm $pacote" || FALHAS+=("$pacote")
@@ -443,12 +458,20 @@ instalar_flatpak() {
     section "$L_FLATPAK_SECTION"
 
     if ! command -v flatpak &>/dev/null; then
-        log_warn "$L_FLATPAK_NOT_INSTALLED"
-        return 1
+        run_cmd "$L_INSTALLING flatpak" "pacman -S --noconfirm flatpak"
+        if ! command -v flatpak &>/dev/null; then
+            log_warn "$L_FLATPAK_NOT_INSTALLED"
+            return 1
+        fi
     fi
 
-    try_cmd "$L_FLATPAK_REMOTE" \
+    run_cmd "$L_FLATPAK_REMOTE" \
         "flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo"
+
+    if ! flatpak remotes 2>/dev/null | grep -q flathub; then
+        log_warn "$L_FLATPAK_REMOTE_FAIL"
+        return 1
+    fi
 
     local FLATPAKS
     FLATPAKS=$(menu_flatpak) || { log_skip "$L_FLATPAK_NONE"; return 0; }
@@ -500,7 +523,7 @@ instalar_scripts_externos() {
 
                     # 1. Discover latest version URL
                     TB_URL=$(curl -s "https://data.services.jetbrains.com/products/releases?code=TBA&latest=true&type=release" \
-                        | grep -oP '"linux":\{[^}]*"link":"\K[^"]+')
+                        | sed 's/.*"linux":{[^}]*"link":"//;s/".*//')
 
                     if [ -z "$TB_URL" ]; then
                         log_warn "$L_TB_NO_URL"
@@ -554,34 +577,6 @@ DTEOF
                     log_ok "$L_TB_DONE"
                 fi
                 ;;
-            lazygit)
-                if command -v lazygit &>/dev/null; then
-                    log_ok "Lazygit ($L_ALREADY_INSTALLED)"
-                else
-                    local LG_VERSION
-                    LG_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -oP '"tag_name": "v\K[^"]+')
-                    if [ -n "$LG_VERSION" ]; then
-                        run_cmd "$L_INSTALLING Lazygit $LG_VERSION" \
-                            "curl -Lo /tmp/lazygit.tar.gz 'https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LG_VERSION}_Linux_x86_64.tar.gz' && tar -xzf /tmp/lazygit.tar.gz -C /usr/local/bin lazygit && rm /tmp/lazygit.tar.gz" || true
-                    else
-                        log_warn "$L_LG_NO_VER"
-                    fi
-                fi
-                ;;
-            lazydocker)
-                if command -v lazydocker &>/dev/null; then
-                    log_ok "Lazydocker ($L_ALREADY_INSTALLED)"
-                else
-                    run_cmd "$L_INSTALLING Lazydocker" \
-                        "curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash" || true
-                    # Move to global path if installed in ~/.local/bin
-                    [ -f "$HOME_USUARIO/.local/bin/lazydocker" ] && mv "$HOME_USUARIO/.local/bin/lazydocker" /usr/local/bin/
-                fi
-                ;;
-            calibre)
-                run_cmd "$L_INSTALLING Calibre" \
-                    "wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sh /dev/stdin" || true
-                ;;
             claude)
                 run_cmd "$L_INSTALLING Claude Code" \
                     "sudo -u $USUARIO_REAL bash -c 'curl -fsSL https://claude.ai/install.sh | bash'" || true
@@ -589,75 +584,6 @@ DTEOF
             zed)
                 run_cmd "$L_INSTALLING Zed Editor" \
                     "sudo -u $USUARIO_REAL bash -c 'curl -f https://zed.dev/install.sh | sh'" || true
-                ;;
-            starship-bin)
-                if ! command -v starship &>/dev/null; then
-                    run_cmd "$L_STARSHIP_INSTALL" "curl -sS https://starship.rs/install.sh | sh -s -- -y" || true
-                else
-                    log_ok "$L_STARSHIP_ALREADY"
-                fi
-                ;;
-            pencil)
-                if command -v pencil &>/dev/null; then
-                    log_ok "Evolus Pencil ($L_ALREADY_INSTALLED)"
-                else
-                    local PENCIL_BIN="$HOME_USUARIO/.local/bin/pencil"
-                    run_cmd "$L_INSTALLING Evolus Pencil (AppImage)" \
-                        "curl -fsSL -k --connect-timeout 30 --max-time 600 -o '$PENCIL_BIN' 'https://pencil.evolus.vn/dl/V3.1.1.ga/Pencil-3.1.1.ga.AppImage' && chmod +x '$PENCIL_BIN'" || true
-                    if [ -f "$PENCIL_BIN" ]; then
-                        chown "$USUARIO_REAL:$USUARIO_REAL" "$PENCIL_BIN"
-                        cat <<DTEOF > "$HOME_USUARIO/.local/share/applications/pencil.desktop"
-[Desktop Entry]
-Type=Application
-Name=Evolus Pencil
-Exec=$PENCIL_BIN
-Icon=pencil
-Categories=Graphics;Design;
-Comment=UI prototyping
-StartupNotify=true
-DTEOF
-                        chown "$USUARIO_REAL:$USUARIO_REAL" "$HOME_USUARIO/.local/share/applications/pencil.desktop"
-                    fi
-                fi
-                ;;
-            tabby)
-                if command -v tabby &>/dev/null || pacman -Q tabby-bin &>/dev/null 2>&1; then
-                    log_ok "Tabby ($L_ALREADY_INSTALLED)"
-                else
-                    run_cmd "$L_INSTALLING Tabby (AUR)" \
-                        "sudo -u $USUARIO_REAL yay -S --noconfirm tabby-bin" || true
-                fi
-                ;;
-            cursor)
-                if command -v cursor &>/dev/null; then
-                    log_ok "Cursor ($L_ALREADY_INSTALLED)"
-                else
-                    local CURSOR_BIN="$HOME_USUARIO/.local/bin/cursor"
-                    run_cmd "$L_INSTALLING Cursor (AppImage)" \
-                        "wget -q 'https://www.cursor.com/api/download?platform=linux-x64&releaseTrack=stable' -O '$CURSOR_BIN' && chmod +x '$CURSOR_BIN'" || true
-                    if [ -f "$CURSOR_BIN" ]; then
-                        chown "$USUARIO_REAL:$USUARIO_REAL" "$CURSOR_BIN"
-                        cat <<DTEOF > "$HOME_USUARIO/.local/share/applications/cursor.desktop"
-[Desktop Entry]
-Type=Application
-Name=Cursor
-Exec=$CURSOR_BIN --no-sandbox %U
-Icon=cursor
-Categories=Development;IDE;
-Comment=AI-powered code editor
-StartupNotify=true
-DTEOF
-                        chown "$USUARIO_REAL:$USUARIO_REAL" "$HOME_USUARIO/.local/share/applications/cursor.desktop"
-                    fi
-                fi
-                ;;
-            awscli)
-                if command -v aws &>/dev/null; then
-                    log_ok "AWS CLI ($L_ALREADY_INSTALLED)"
-                else
-                    run_cmd "$L_INSTALLING AWS CLI v2" \
-                        "curl -fsSL 'https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip' -o /tmp/awscliv2.zip && unzip -qo /tmp/awscliv2.zip -d /tmp && /tmp/aws/install; rm -rf /tmp/awscliv2.zip /tmp/aws" || true
-                fi
                 ;;
         esac
     done
@@ -683,6 +609,7 @@ configurar_mise_linguagens() {
                 run_cmd "$L_INSTALLING Java" "sudo -u $USUARIO_REAL mise use --global java" || true
                 ;;
             ruby)
+                run_cmd "$L_MISE_RUBY_DEPS" "pacman -S --noconfirm libyaml openssl" || true
                 run_cmd "$L_INSTALLING Ruby" "sudo -u $USUARIO_REAL mise use --global ruby" || true
                 ;;
             flutter)
@@ -735,9 +662,8 @@ configurar_starship() {
     section "$L_STARSHIP_SECTION"
 
     if ! command -v starship &>/dev/null; then
-        run_cmd "$L_STARSHIP_INSTALL" "curl -sS https://starship.rs/install.sh | sh -s -- -y" || true
-    else
-        log_ok "$L_STARSHIP_ALREADY"
+        log_warn "Starship not installed — select it in the pacman step"
+        return 1
     fi
 
     local CONFIG_DIR="$HOME_USUARIO/.config"
@@ -909,7 +835,6 @@ fi
 
 # Flatpak aliases (suppress Qt/Gtk warnings)
 command -v flatpak &>/dev/null && {
-  alias flameshot="flatpak run org.flameshot.Flameshot 2>/dev/null"
   alias insomnia="flatpak run rest.insomnia.Insomnia 2>/dev/null"
   alias postman="flatpak run com.getpostman.Postman 2>/dev/null"
   alias drawio="flatpak run com.jgraph.drawio.desktop 2>/dev/null"
@@ -919,7 +844,6 @@ command -v flatpak &>/dev/null && {
   alias localsend="flatpak run org.localsend.localsend_app 2>/dev/null"
   alias smile="flatpak run it.mijorus.smile 2>/dev/null"
   alias qalculate="flatpak run io.github.Qalculate 2>/dev/null"
-  alias micro="flatpak run io.github.zyedidia.micro 2>/dev/null"
   alias dbeaver="flatpak run io.dbeaver.DBeaverCommunity 2>/dev/null"
   alias zapzap="flatpak run com.rtosta.zapzap 2>/dev/null"
   alias code="flatpak run com.visualstudio.code 2>/dev/null"
@@ -1489,25 +1413,51 @@ limpeza_e_ajustes() {
         log_ok "$L_TWEAKS_PATH"
     fi
 
-    # KDE Plasma presets
-    if [ "$XDG_CURRENT_DESKTOP" = "KDE" ] || pgrep -x plasmashell &>/dev/null; then
-        local KDE_CONF_DIR="$SCRIPT_DIR/configs/kde"
-        if [ -d "$KDE_CONF_DIR" ]; then
-            echo ""
-            if gum confirm "$L_TWEAKS_KDE_CONFIRM"; then
-                for conf_file in "$KDE_CONF_DIR"/*; do
-                    [ -f "$conf_file" ] || continue
-                    local fname
-                    fname=$(basename "$conf_file")
-                    cp "$conf_file" "$HOME_USUARIO/.config/$fname"
-                    chown "$USUARIO_REAL:$USUARIO_REAL" "$HOME_USUARIO/.config/$fname"
-                done
-                log_ok "$L_TWEAKS_KDE_DONE"
-            else
-                log_skip "$L_TWEAKS_KDE_SKIP"
-            fi
-        fi
+    # KRunner centered
+    sudo -u "$USUARIO_REAL" kwriteconfig6 --file krunnerrc --group General --key FreeFloating true
+    sudo -u "$USUARIO_REAL" kquitapp6 krunner 2>/dev/null; sudo -u "$USUARIO_REAL" kstart krunner 2>/dev/null &
+    log_ok "$L_TWEAKS_KRUNNER"
+
+    # Autostart apps
+    local AUTOSTART_DIR="$HOME_USUARIO/.config/autostart"
+    mkdir -p "$AUTOSTART_DIR"
+
+    # Flameshot
+    cat > "$AUTOSTART_DIR/flameshot.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=Flameshot
+Exec=flameshot
+X-GNOME-Autostart-enabled=true
+EOF
+
+    # 1Password
+    if command -v 1password &>/dev/null; then
+        cat > "$AUTOSTART_DIR/1password.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=1Password
+Exec=1password --silent
+X-GNOME-Autostart-enabled=true
+EOF
     fi
+
+    # JetBrains Toolbox
+    if [ -f "$HOME_USUARIO/.local/bin/jetbrains-toolbox" ]; then
+        cat > "$AUTOSTART_DIR/jetbrains-toolbox.desktop" <<'EOF'
+[Desktop Entry]
+Type=Application
+Name=JetBrains Toolbox
+Exec=jetbrains-toolbox --minimize
+X-GNOME-Autostart-enabled=true
+EOF
+    fi
+
+    chown -R "$USUARIO_REAL:$USUARIO_REAL" "$AUTOSTART_DIR"
+    log_ok "$L_TWEAKS_AUTOSTART"
+
+    # KDE Plasma presets (disabled — TODO: use kwriteconfig6 for safe merge)
+    log_skip "$L_TWEAKS_KDE_SKIP"
 }
 
 # ==========================================

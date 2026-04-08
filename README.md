@@ -1,175 +1,130 @@
 # bora-linux
 
-Script interativo de setup para **Ubuntu / Linux Mint / Pop!_OS**.
-Instala e configura tudo de uma vez numa maquina recem formatada.
+Setup pos-instalacao para **Ubuntu / Mint / Pop!_OS** e **Arch / CachyOS / Garuda**.
 
-> Sem Snap. Tudo via APT + Flatpak.
+Sem Snap. Tudo via pacman/APT + Flatpak.
 
 ## Uso
 
 ```bash
 git clone https://github.com/anaice/bora-linux.git
 cd bora-linux
-sudo ./install.sh
-```
 
-Flags:
+# Ubuntu / Mint / Pop!_OS
+sudo ./install.sh
+
+# Arch / CachyOS / Garuda
+sudo ./install-arch.sh
+```
 
 ```bash
-sudo ./install.sh -v          # modo verbose
-sudo ./install.sh --lang=en   # forcar idioma (pt-br | en)
-sudo ./install.sh -h          # ajuda
+-v            # verbose
+--lang=en     # forcar idioma (pt-br | en)
+-h            # ajuda
 ```
 
-Durante a execucao, pressione **v** a qualquer momento para alternar entre modo compacto e verbose.
+Pressione **v** durante a execucao para alternar verbose.
 
-## O que faz
+## Etapas
 
-O script usa [gum](https://github.com/charmbracelet/gum) para menus interativos onde voce escolhe o que instalar. Cada etapa tem um sub-menu para selecionar pacotes individuais.
+Tudo eh selecionavel via menu interativo ([gum](https://github.com/charmbracelet/gum)).
 
-| Etapa | Default | O que faz |
-|---|---|---|
-| Cleanup | OFF | Remove fontes APT duplicadas, chaves GPG orfas, Snap completo |
-| Repositorios APT | ON | Configura repos: 1Password, Brave, Chrome, Docker, Mise, Eza, AnyDesk, Ulauncher |
-| Atualizar sistema | OFF | `apt update` + `apt upgrade` + `apt dist-upgrade` |
-| Pacotes APT | ON | bat, fzf, eza, btop, Docker, Neovim, ripgrep, Plank, Ulauncher, etc |
-| Pacotes Flatpak | ON | VS Code, Insomnia, Postman, Draw.io, Discord, Flameshot, DBeaver, ZapZap, etc |
-| Nerd Fonts | ON | JetBrainsMono Nerd Font |
-| Scripts externos | ON | JetBrains Toolbox, Lazygit, Lazydocker, Calibre, Claude Code, Zed, Starship, Pencil, Tabby, Cursor, Antigravity |
-| Linguagens (Mise) | ON | Java, Ruby, Flutter, Python, Go, Rust, Clojure, Elixir |
-| LazyVim | ON | Clona LazyVim starter config |
-| Starship | ON | Prompt com escolha de preset (bora, tokyo-night, gruvbox, etc) |
-| ZSH | ON | Zoxide, plugins, `.zshrc` completo com aliases |
-| Temas | OFF | Temas GTK, icones e cursores (Orchis, Colloid, Fluent, Skeuos, Papirus, Bibata, etc) |
-| Google Drive | OFF | rclone bisync com sync automatico via systemd timer |
-| Ajustes finais | ON | Docker group, ZSH padrao, PATH, presets Cinnamon (opcional) |
+### Ubuntu / Mint / Pop!_OS
 
-## Estrutura do projeto
+| Etapa | O que faz |
+|---|---|
+| Cleanup | Remove fontes APT duplicadas, chaves GPG orfas, Snap |
+| Repositorios | 1Password, Brave, Chrome, Docker, Mise, Eza, AnyDesk, Ulauncher |
+| Atualizar | `apt update && upgrade && dist-upgrade` |
+| Pacotes APT | bat, fzf, eza, btop, Docker, Neovim, ripgrep, etc |
+| Flatpak | VS Code, Insomnia, Postman, Draw.io, Discord, DBeaver, ZapZap, etc |
+| Fonts | JetBrainsMono Nerd Font |
+| Scripts | JetBrains Toolbox, Claude Code, Zed, Tabby, Cursor, Pencil, etc |
+| Mise | Java, Ruby, Flutter, Python, Go, Rust, Clojure, Elixir |
+| LazyVim | Starter config do Neovim |
+| Starship | Prompt com 5 presets |
+| ZSH | Plugins, aliases, keybinds |
+| Temas | GTK + icones + cursores |
+| Google Drive | rclone bisync + systemd timer |
+| Ajustes | Docker group, ZSH padrao, presets Cinnamon |
 
-```
-bora-linux/
-├── install.sh                          # Script principal
-├── configs/
-│   ├── starship/
-│   │   ├── bora.toml                   # Preset bora (dark hacker, devops)
-│   │   ├── pastel-powerline.toml       # Powerline pastel
-│   │   ├── tokyo-night.toml            # Tokyo Night escuro
-│   │   ├── gruvbox-rainbow.toml        # Tons quentes retro
-│   │   └── catppuccin-powerline.toml   # Catppuccin pastel
-│   └── cinnamon/
-│       └── cinnamon.dconf              # Presets Cinnamon (atalhos, cantos, gestos)
-├── lang/
-│   ├── pt-br.sh                        # Portugues (Brasil)
-│   └── en.sh                           # English
-└── README.md
-```
+### Arch / CachyOS / Garuda
 
-## Starship Presets
+| Etapa | O que faz |
+|---|---|
+| Cleanup | Remove pacotes orfaos, Flatpaks nao usados |
+| Atualizar | reflector (mirrors) + `pacman -Syu` |
+| Pacotes | pacman + AUR (yay): bat, fzf, eza, btop, Docker, Neovim, Brave, Chrome, Tabby, Cursor, etc |
+| Flatpak | VS Code, Insomnia, Postman, Draw.io, Discord, DBeaver, ZapZap, etc |
+| Fonts | JetBrainsMono Nerd Font |
+| Apps | JetBrains Toolbox, Claude Code, Zed |
+| Mise | Java, Ruby, Flutter, Python, Go, Rust, Clojure, Elixir |
+| LazyVim | Starter config do Neovim |
+| Starship | Prompt com 5 presets |
+| ZSH | Plugins, aliases, keybinds |
+| Temas | GTK + icones + cursores |
+| Google Drive | rclone bisync + systemd timer |
+| Teclado | US Intl com cedilha (XCompose) |
+| Ajustes | Docker group, ZSH padrao, KRunner centralizado, autostart apps |
 
-Na etapa Starship voce escolhe entre 5 temas:
+## Starship
+
+5 presets de prompt:
 
 | Preset | Estilo |
 |---|---|
-| **bora** | Dark hacker — duas linhas, minimal, devops-focused |
-| **pastel-powerline** | Powerline com cores pastel |
-| **tokyo-night** | Paleta escura azul/roxo |
-| **gruvbox-rainbow** | Tons quentes estilo retro |
-| **catppuccin-powerline** | Powerline pastel Catppuccin |
+| bora | Dark, minimal, duas linhas, devops |
+| pastel-powerline | Powerline pastel |
+| tokyo-night | Azul/roxo escuro |
+| gruvbox-rainbow | Tons quentes retro |
+| catppuccin-powerline | Powerline Catppuccin |
 
-Todos detectam automaticamente o icone do OS (Ubuntu, Mint, Pop, Arch, etc).
-
-Requer [Nerd Font](https://www.nerdfonts.com/) — o script instala JetBrainsMono automaticamente. Lembre de configurar a fonte no terminal.
-
-### Preset bora
-
-Prompt dark e minimalista focado em DevOps:
-- Icone do OS + diretorio
-- Git remote provider (GitHub/GitLab/Bitbucket) + user/repo + branch local e remota
-- Git status + metricas (+/-)
-- Docker, Kubernetes, Terraform, AWS, GCloud
-- Linguagens (Java, Ruby, Python, Node, Go, Rust, etc)
-- Duracao do comando + hora
-- Paleta Dracula-inspired com tons de verde, roxo e cyan
+Detecta icone do OS automaticamente. Requer Nerd Font (instalada pelo script).
 
 ## ZSH
 
-O script gera um `.zshrc` completo com:
-- **Aliases**: `ls` (eza), `cat` (bat), `ff` (fzf), atalhos git, docker, rails, nvim
-- **Aliases Flatpak**: todos os apps Flatpak acessiveis por nome (flameshot, discord, code, dbeaver, zapzap, etc)
-- **Zoxide**: `cd` inteligente que aprende seus diretorios
-- **Plugins**: autosuggestions, syntax-highlighting, history-substring-search
-- **Keybinds**: Ctrl+setas (navegar palavras), Alt+setas (inicio/fim da linha)
-- **Deteccao de distro**: aliases `install`/`remove`/`upgrade` funcionam em apt, pacman e dnf
-
-### Aliases
-
-| Alias | Comando |
-|---|---|
-| `ls` | `eza -lh --group-directories-first --icons=auto` |
-| `lt` | `eza --tree --level=2 --long --icons --git` |
-| `n` | `nvim .` ou `nvim <arquivo>` |
-| `cat` | `bat` (syntax highlight) |
-| `ff` | `fzf` com preview via bat |
-| `g` | `git` |
-| `gs` | `git status` |
-| `gcm` | `git commit -m` |
-| `lg` | `lazygit` |
-| `ld` | `lazydocker` |
-| `flameshot` | Flameshot via Flatpak |
-| `code` | VS Code via Flatpak |
-| `discord` | Discord via Flatpak |
-| `dbeaver` | DBeaver via Flatpak |
-| `zapzap` | ZapZap (WhatsApp) via Flatpak |
-| `install` | `sudo apt install` (ou pacman/dnf) |
-| `upgrade` | `sudo apt update && sudo apt upgrade` |
-
-## Temas (GTK + Icones + Cursores)
-
-Todos compativeis com GNOME e Cinnamon:
-
-| Tipo | Tema |
-|---|---|
-| GTK | Orchis, Colloid, Fluent, Graphite, Lavanda, Skeuos |
-| Icones | Papirus, Tela, Colloid Icons |
-| Cursores | Bibata Modern |
-
-## Cinnamon Presets
-
-Na etapa de ajustes finais (se detectar Cinnamon), o script oferece aplicar presets:
-- Atalhos de teclado (Super+T: Tabby, Super+Print: Flameshot)
-- Hot corners (Scale, Expo)
-- Gestos de touchpad (workspaces, tile, volume)
-- Tema (Fluent-Dark, Tela icons, Bibata cursor)
-- Extensoes (Blur, Transparent Panels, gTile, Maximus)
-- Alt+Tab coverflow
+`.zshrc` completo com:
+- Zoxide (cd inteligente)
+- Plugins: autosuggestions, syntax-highlighting, history-substring-search
+- Aliases Flatpak (code, discord, dbeaver, zapzap, etc)
+- Atalhos git, docker, nvim
+- Keybinds: Ctrl+setas (palavras), Alt+setas (inicio/fim)
+- `install`/`remove`/`upgrade` funcionam em apt, pacman e dnf
 
 ## Google Drive
 
 Sync bidirecional com rclone:
-- Sync automatico a cada 15 minutos via systemd timer
-- Suporte a multiplas contas
-- Sync seletivo por pastas
+- Automatico a cada 15 min via systemd timer
+- Multiplas contas
+- Pastas selecionaveis
 
 ```bash
-~/.local/bin/gdrive-sync.sh                    # sync manual
-tail -f ~/.local/share/gdrive-sync.log         # acompanhar
-systemctl --user status gdrive-sync.timer      # status do timer
+~/.local/bin/gdrive-sync.sh                # sync manual
+systemctl --user status gdrive-sync.timer  # status
 ```
 
-## Internacionalizacao
+## Estrutura
 
-O script detecta o idioma do sistema automaticamente. Para forcar:
-
-```bash
-sudo ./install.sh --lang=en      # English
-sudo ./install.sh --lang=pt-br   # Portugues
+```
+bora-linux/
+├── install.sh          # Ubuntu / Mint / Pop!_OS
+├── install-arch.sh     # Arch / CachyOS / Garuda
+├── configs/
+│   ├── starship/       # 5 presets de prompt
+│   ├── cinnamon/       # Presets Cinnamon (atalhos, cantos, gestos)
+│   ├── gnome/          # Presets GNOME
+│   └── keyboard/       # US Intl com cedilha
+├── lang/
+│   ├── pt-br.sh
+│   └── en.sh
+└── README.md
 ```
 
 ## Requisitos
 
-- Ubuntu 22.04+ / Linux Mint 21+ / Pop!_OS 22.04+
-- Executar como `sudo`
-- Conexao com internet
+- Ubuntu 22.04+ / Mint 21+ / Pop!_OS 22.04+ ou Arch Linux / CachyOS / Garuda
+- `sudo`
+- Internet
 
 ## Licenca
 

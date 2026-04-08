@@ -3,7 +3,10 @@ Number=2
 Rows=1
 
 [Effect-overview]
-BorderActivate=9
+BorderActivate=0
+
+[Effect-desktopgrid]
+BorderActivate=6
 
 [Plugins]
 blurEnabled=true
