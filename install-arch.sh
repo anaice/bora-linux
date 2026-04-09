@@ -294,6 +294,7 @@ menu_pacman() {
         "ripgrep"                "$L_APT_ripgrep"          ON \
         "flameshot"              "$L_FLATPAK_flameshot"    ON \
         "copyq"                  "$L_APT_copyq"            ON \
+        "wl-clipboard"           "$L_APT_wl_clipboard"     ON \
         "micro"                  "$L_FLATPAK_micro"        ON \
         "tldr"                   "$L_APT_tldr"             ON \
         "xcb-util-cursor"        "$L_APT_libxcb"           ON \
