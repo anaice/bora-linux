@@ -258,6 +258,7 @@ menu_principal() {
         "zsh  $L_STEP_ZSH" \
         "themes  $L_STEP_THEMES" \
         "gdrive  $L_STEP_GDRIVE" \
+        "voxtype  $L_STEP_VOXTYPE" \
         "keyboard  $L_STEP_KEYBOARD" \
         "ajustes  $L_STEP_TWEAKS") || { log_warn "$L_CANCELLED"; exit 0; }
 
@@ -1381,7 +1382,115 @@ configurar_teclado() {
 }
 
 # ==========================================
-# 16. CLEANUP AND FINAL TWEAKS
+# 16. VOXTYPE (VOICE-TO-TEXT)
+# ==========================================
+configurar_voxtype() {
+    section "$L_VOXTYPE_SECTION"
+
+    # 1. Install packages
+    local VOXTYPE_PKGS="wtype wl-clipboard ydotool"
+    for pkg in $VOXTYPE_PKGS; do
+        if pacman -Q "$pkg" &>/dev/null; then
+            log_ok "$pkg ($L_ALREADY_INSTALLED)"
+        else
+            run_cmd "$L_INSTALLING $pkg" "pacman -S --noconfirm $pkg" || true
+        fi
+    done
+
+    if pacman -Q voxtype &>/dev/null; then
+        log_ok "voxtype ($L_ALREADY_INSTALLED)"
+    else
+        run_cmd "$L_INSTALLING voxtype (AUR)" \
+            "sudo -u $USUARIO_REAL yay -S --noconfirm voxtype" || { log_warn "$L_VOXTYPE_FAIL"; return 1; }
+    fi
+
+    usermod -aG input "$USUARIO_REAL" 2>/dev/null
+    log_ok "$L_VOXTYPE_INPUT_GROUP"
+
+    # 2. Download model
+    local MODELO
+    MODELO=$(gum choose --header="  $L_VOXTYPE_MODEL_TITLE" \
+        "tiny  $L_VOXTYPE_MODEL_tiny" \
+        "base  $L_VOXTYPE_MODEL_base" \
+        "small  $L_VOXTYPE_MODEL_small" \
+        "medium  $L_VOXTYPE_MODEL_medium") || { log_skip "$L_VOXTYPE_MODEL_SKIP"; return 0; }
+
+    local MODEL_NAME
+    MODEL_NAME=$(echo "$MODELO" | awk '{print $1}')
+    # VoxType >=0.6.5 bug: 'small' collides with SenseVoice model name.
+    # Workaround: download ggml-small.bin manually and set via config.
+    if ! sudo -u "$USUARIO_REAL" voxtype setup --download --model "$MODEL_NAME" --no-post-install 2>/dev/null; then
+        local MODELS_DIR="$HOME_USUARIO/.local/share/voxtype/models"
+        local MODEL_FILE="$MODELS_DIR/ggml-${MODEL_NAME}.bin"
+        if [[ ! -f "$MODEL_FILE" ]]; then
+            run_cmd "$L_TWEAKS_VOXTYPE_MODEL ($MODEL_NAME)" \
+                "sudo -u $USUARIO_REAL curl -fSL -o $MODEL_FILE https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-${MODEL_NAME}.bin" || true
+        else
+            log_ok "$L_TWEAKS_VOXTYPE_MODEL ($MODEL_NAME) ($L_ALREADY_INSTALLED)"
+        fi
+        # Update config to use the model
+        local VOXTYPE_CONF="$HOME_USUARIO/.config/voxtype/config.toml"
+        if [[ -f "$VOXTYPE_CONF" ]]; then
+            sed -i "s/^model = .*/model = \"$MODEL_NAME\"/" "$VOXTYPE_CONF"
+        fi
+    fi
+
+    run_cmd "$L_TWEAKS_VOXTYPE_SYSTEMD" \
+        "sudo -u $USUARIO_REAL voxtype setup systemd" || true
+    sudo -u "$USUARIO_REAL" systemctl --user enable voxtype 2>/dev/null || true
+
+    # GPU acceleration (Vulkan)
+    if command -v vulkaninfo &>/dev/null || pacman -Q vulkan-icd-loader &>/dev/null; then
+        run_cmd "$L_VOXTYPE_GPU" "voxtype setup gpu --enable" || true
+        if lspci | grep -iq nvidia; then
+            local GPU_OVERRIDE_DIR="$HOME_USUARIO/.config/systemd/user/voxtype.service.d"
+            mkdir -p "$GPU_OVERRIDE_DIR"
+            printf '[Service]\nEnvironment="VOXTYPE_VULKAN_DEVICE=nvidia"\n' > "$GPU_OVERRIDE_DIR/gpu.conf"
+            chown -R "$USUARIO_REAL:$USUARIO_REAL" "$HOME_USUARIO/.config/systemd"
+            sudo -u "$USUARIO_REAL" systemctl --user daemon-reload 2>/dev/null || true
+        fi
+    fi
+
+    # 3. Hotkey config
+    local HOTKEY
+    HOTKEY=$(gum choose --header="  $L_VOXTYPE_HOTKEY_TITLE" \
+        "Ctrl+Shift+H  $L_VOXTYPE_HOTKEY_ctrlshifth" \
+        "ScrollLock  $L_VOXTYPE_HOTKEY_scroll" \
+        "Pause  $L_VOXTYPE_HOTKEY_pause") || HOTKEY="Ctrl+Shift+H"
+
+    local HOTKEY_NAME
+    HOTKEY_NAME=$(echo "$HOTKEY" | awk '{print $1}')
+    local VOXTYPE_CONF="$HOME_USUARIO/.config/voxtype/config.toml"
+    mkdir -p "$(dirname "$VOXTYPE_CONF")"
+
+    case "$HOTKEY_NAME" in
+        Ctrl+Shift+H)
+            cat > "$VOXTYPE_CONF" <<'VEOF'
+[hotkey]
+key = "H"
+modifiers = ["LEFTCTRL", "LEFTSHIFT"]
+VEOF
+            ;;
+        ScrollLock)
+            cat > "$VOXTYPE_CONF" <<'VEOF'
+[hotkey]
+key = "SCROLLLOCK"
+VEOF
+            ;;
+        Pause)
+            cat > "$VOXTYPE_CONF" <<'VEOF'
+[hotkey]
+key = "PAUSE"
+VEOF
+            ;;
+    esac
+
+    chown -R "$USUARIO_REAL:$USUARIO_REAL" "$HOME_USUARIO/.config/voxtype"
+    log_ok "$L_TWEAKS_VOXTYPE ($HOTKEY_NAME)"
+}
+
+# ==========================================
+# 17. CLEANUP AND FINAL TWEAKS
 # ==========================================
 limpeza_e_ajustes() {
     section "$L_TWEAKS_SECTION"
@@ -1395,6 +1504,19 @@ limpeza_e_ajustes() {
     # Docker group
     usermod -aG docker "$USUARIO_REAL" 2>/dev/null && \
         log_ok "$USUARIO_REAL $L_TWEAKS_DOCKER" || true
+
+    # ddcutil: brightness control for external monitors via DDC/CI (KDE Plasma
+    # integrates automatically once ddcutil is installed and the user is in
+    # the i2c group).
+    if ! pacman -Q ddcutil &>/dev/null; then
+        run_cmd "$L_INSTALLING $L_TWEAKS_DDCUTIL" "pacman -S --noconfirm ddcutil" || true
+    else
+        log_ok "ddcutil ($L_ALREADY_INSTALLED)"
+    fi
+    echo i2c-dev > /etc/modules-load.d/i2c-dev.conf
+    modprobe i2c-dev 2>/dev/null || true
+    usermod -aG i2c "$USUARIO_REAL" 2>/dev/null && \
+        log_ok "$USUARIO_REAL $L_TWEAKS_DDCUTIL_GROUP" || true
 
     # Default ZSH
     local CAMINHO_ZSH
@@ -1485,6 +1607,7 @@ main() {
     is_selected "zsh"      && configurar_zsh_completo
     is_selected "themes"   && instalar_themes
     is_selected "gdrive"   && configurar_google_drive
+    is_selected "voxtype"  && configurar_voxtype
     is_selected "keyboard" && configurar_teclado
     is_selected "ajustes"  && limpeza_e_ajustes
 
