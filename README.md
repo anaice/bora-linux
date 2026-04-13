@@ -64,6 +64,7 @@ Tudo eh selecionavel via menu interativo ([gum](https://github.com/charmbracelet
 | ZSH | Plugins, aliases, keybinds |
 | Temas | GTK + icones + cursores |
 | Google Drive | rclone bisync + systemd timer |
+| VoxType | Voz para texto push-to-talk (Whisper + GPU Vulkan) |
 | Teclado | US Intl com cedilha (XCompose) |
 | Ajustes | Docker group, ZSH padrao, KRunner centralizado, autostart apps |
 
