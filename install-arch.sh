@@ -1407,6 +1407,15 @@ configurar_voxtype() {
     usermod -aG input "$USUARIO_REAL" 2>/dev/null
     log_ok "$L_VOXTYPE_INPUT_GROUP"
 
+    # uinput module + udev rule (for ydotool in-place typing)
+    echo 'uinput' > /etc/modules-load.d/uinput.conf
+    modprobe uinput 2>/dev/null || true
+    echo 'KERNEL=="uinput", GROUP="input", MODE="0660"' > /etc/udev/rules.d/80-uinput.rules
+    udevadm control --reload-rules 2>/dev/null
+    udevadm trigger /dev/uinput 2>/dev/null
+    sudo -u "$USUARIO_REAL" systemctl --user enable ydotool 2>/dev/null || true
+    log_ok "$L_VOXTYPE_UINPUT"
+
     # 2. Download model
     local MODELO
     MODELO=$(gum choose --header="  $L_VOXTYPE_MODEL_TITLE" \
